@@ -7,16 +7,22 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DziennikSzkolnyMVC.Data;
 using DziennikSzkolnyMVC.Models;
+using DziennikSzkolnyMVC.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace DziennikSzkolnyMVC.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class SchoolClassesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public SchoolClassesController(ApplicationDbContext context)
+        public SchoolClassesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: SchoolClasses
@@ -152,6 +158,77 @@ namespace DziennikSzkolnyMVC.Controllers
         private bool SchoolClassExists(int id)
         {
             return _context.SchoolClasses.Any(e => e.Id == id);
+        }
+
+        public async Task<IActionResult> ManageStudents(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var schoolClass = await _context.SchoolClasses
+                .Include(s => s.Students)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (schoolClass == null)
+            {
+                return NotFound();
+            }
+            
+            var allStudentsInRole = await _userManager.GetUsersInRoleAsync("Uczen");
+
+            var unassignedStudents = allStudentsInRole
+                .Where(s => s.SchoolClassId == null)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id,
+                    Text = $"{s.FirstName} {s.LastName} ({s.Email})"
+                })
+                .ToList();
+
+            var viewModel = new ManageClassStudentsViewModel
+            {
+                ClassId = schoolClass.Id,
+                ClassName = schoolClass.Name,
+                SchoolYear = schoolClass.SchoolYear,
+                AssignedStudents = schoolClass.Students.ToList(),
+                AvailableStudents = unassignedStudents
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddStudentToClass(int classId, string selectedStudentId)
+        {
+            if (string.IsNullOrEmpty(selectedStudentId))
+            {
+                return RedirectToAction(nameof(ManageStudents), new {id = classId});
+            }
+            
+            var student = await _userManager.FindByIdAsync(selectedStudentId);
+            if (student != null)
+            {
+                student.SchoolClassId = classId;
+                await _userManager.UpdateAsync(student);
+            }
+            
+            return RedirectToAction(nameof(ManageStudents), new {id = classId});
+        }
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveStudentFromClass(int classId, string selectedStudentId)
+        {
+            var student = await _userManager.FindByIdAsync(selectedStudentId);
+            if (student != null && student.SchoolClassId == classId)
+            {
+                student.SchoolClassId = null;
+                await _userManager.UpdateAsync(student);
+            }
+            
+            return RedirectToAction(nameof(ManageStudents), new {id = classId});
         }
     }
 }

@@ -14,4 +14,5 @@ public class SchoolClass
     public string SchoolYear { get; set; } = string.Empty;
 
     public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
+    public ICollection<ApplicationUser> Students { get; set; } = new List<ApplicationUser>();
 }

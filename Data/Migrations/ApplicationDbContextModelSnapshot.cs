@@ -15,7 +15,7 @@ namespace DziennikSzkolnyMVC.Data.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.2");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.22");
 
             modelBuilder.Entity("DziennikSzkolnyMVC.Models.ApplicationUser", b =>
                 {
@@ -67,6 +67,9 @@ namespace DziennikSzkolnyMVC.Data.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("SchoolClassId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
 
@@ -85,6 +88,8 @@ namespace DziennikSzkolnyMVC.Data.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("SchoolClassId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -270,6 +275,15 @@ namespace DziennikSzkolnyMVC.Data.Migrations
                     b.ToTable("SchoolClassSubject");
                 });
 
+            modelBuilder.Entity("DziennikSzkolnyMVC.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("DziennikSzkolnyMVC.Models.SchoolClass", "SchoolClass")
+                        .WithMany("Students")
+                        .HasForeignKey("SchoolClassId");
+
+                    b.Navigation("SchoolClass");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -334,6 +348,11 @@ namespace DziennikSzkolnyMVC.Data.Migrations
                         .HasForeignKey("SubjectsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("DziennikSzkolnyMVC.Models.SchoolClass", b =>
+                {
+                    b.Navigation("Students");
                 });
 #pragma warning restore 612, 618
         }
