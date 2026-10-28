@@ -1,0 +1,37 @@
+@model DziennikSzkolnyMVC.Models.SchoolClass
+
+@{
+    ViewData["Title"] = "Dodaj klasę";
+}
+
+<h1>Dodaj klasę</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control"></input>
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group mb-3">
+                <label asp-for="SchoolYear" class="control-label"></label>
+                <input asp-for="SchoolYear" class="form-control"></input>
+                <span asp-validation-for="SchoolYear" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <input type="submit" value="Zapisz" class="btn btn-primary"></input>
+                <a asp-action="Index" class="btn btn-secondary">Powrót do listy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts
+{
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

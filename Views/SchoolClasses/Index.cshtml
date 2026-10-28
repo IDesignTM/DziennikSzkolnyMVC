@@ -1,0 +1,29 @@
+@model IEnumerable<DziennikSzkolnyMVC.Models.SchoolClass>
+
+@{
+    ViewData["Title"] = "Klasy";
+}
+
+<h1>Klasy</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Dodaj nową klasę</a>
+</p>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Nazwa klasy</th>
+        <th>Rok szkolny</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Name</td>
+            <td>@item.SchoolYear</td>
+        </tr>
+    }
+    </tbody>
+</table>
