@@ -1,0 +1,84 @@
+@model DziennikSzkolnyMVC.ViewModels.ManageClassSubjectsViewModel
+
+@{
+    ViewData["Title"] = $"Przedmioty - {Model.ClassName}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Przedmioty w klasie @Model.ClassName (@Model.SchoolYear)</h2>
+    <a asp-action="Index" class="btn btn-secondary">Powrót do listy klas</a>
+</div>
+
+<div class="row">
+    <div class="col-md-5 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Przypisz przedmiot do klasy</h5>
+            </div>
+            <div class="card-body">
+                @if (!Model.AvailableSubjects.Any())
+                {
+                    <div class="alert alert-info mb-0">
+                        Brak nieprzypisanych przedmiotów w tej klasie.
+                    </div>
+                }
+                else
+                {
+                    <form asp-action="AddSubjectToClass" method="post">
+                        <input type="hidden" name="classId" value="@Model.ClassId" />
+                        <div class="form-group mb-3">
+                            <label class="form-label">Wybierz przedmiot z listy:</label>
+                            <select name="selectedSubjectId" class="form-select" asp-items="Model.AvailableSubjects">
+                                <option value="">-- Wybierz przedmiot --</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Dodaj przedmiot</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Przedmioty w tej klasie (@Model.AssignedSubjects.Count)</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.AssignedSubjects.Any())
+                {
+                    <p class="p-3 text-muted mb-0">Ta klasa nie ma jeszcze żadnych przypisanych przedmiotów.</p>
+                }
+                else
+                {
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nazwa przedmiotu</th>
+                                <th class="text-end">Akcja</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var subject in Model.AssignedSubjects)
+                            {
+                                <tr>
+                                    <td>@subject.Name</td>
+                                    <td class="text-end">
+                                        <form asp-action="RemoveStudentFromClass" method="post" class="d-inline">
+                                            <input type="hidden" name="classId" value="@Model.ClassId" />
+                                            <input type="hidden" name="subjectId" value="@subject.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="return confirm('Czy na pewno chcesz usunąć ten przedmiot z klasy?');">
+                                                Usuń
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>

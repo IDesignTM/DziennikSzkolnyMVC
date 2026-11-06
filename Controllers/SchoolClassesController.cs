@@ -230,5 +230,90 @@ namespace DziennikSzkolnyMVC.Controllers
             
             return RedirectToAction(nameof(ManageStudents), new {id = classId});
         }
+
+        public async Task<IActionResult> ManageSubjects(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            
+            var SchoolClass = await _context.SchoolClasses
+                .Include(s => s.Subjects)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (SchoolClass == null)
+            {
+                return NotFound();
+            }
+
+            var assignedSubjectIds = SchoolClass.Subjects.Select(s => s.Id);
+            
+            var availableSubjects = await  _context.Subjects
+                .Where(s => !assignedSubjectIds.Contains(s.Id))
+                .Select(s=> new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+
+            var viewModel = new ManageClassSubjectsViewModel
+            {
+                ClassId = SchoolClass.Id,
+                ClassName = SchoolClass.Name,
+                SchoolYear = SchoolClass.SchoolYear,
+                AssignedSubjects = SchoolClass.Subjects.ToList(),
+                AvailableSubjects = availableSubjects
+            };
+            
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddSubjectToClass(int classId, int? selectedSubjectId)
+        {
+            if (selectedSubjectId == null)
+            {
+                return RedirectToAction(nameof(ManageSubjects), new {id = classId});
+            }
+            
+            var schoolClass = await _context.SchoolClasses
+                .Include(s => s.Subjects)
+                .FirstOrDefaultAsync(m => m.Id == classId);
+            
+            var subject = await _context.Subjects.FindAsync(selectedSubjectId);
+
+            if (schoolClass != null && subject != null)
+            {
+                if (!schoolClass.Subjects.Any(s => s.Id == subject.Id))
+                {
+                    schoolClass.Subjects.Add(subject);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            
+            return RedirectToAction(nameof(ManageSubjects), new {id = classId});
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveSubjectFromClass(int classId, int subjectId)
+        {
+            var schoolClass = await _context.SchoolClasses
+                .Include(s => s.Subjects)
+                .FirstOrDefaultAsync(m => m.Id == classId);
+            
+            var subject = schoolClass?.Subjects.FirstOrDefault(s => s.Id == subjectId);
+
+            if (schoolClass != null && subject != null)
+            {
+                schoolClass.Subjects.Remove(subject);
+                await _context.SaveChangesAsync();
+            }
+            
+            return RedirectToAction(nameof(ManageSubjects), new {id = classId});
+        }
     }
 }
