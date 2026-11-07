@@ -13,4 +13,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     public DbSet<SchoolClass> SchoolClasses { get; set; }
     public DbSet<Subject> Subjects { get; set; }
+    public DbSet<Grade> Grades { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        
+        modelBuilder.Entity<Grade>()
+            .HasOne(g => g.Student)
+            .WithMany()
+            .HasForeignKey(g => g.StudentId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Grade>()
+            .HasOne(g => g.Teacher)
+            .WithMany()
+            .HasForeignKey(g => g.TeacherId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
 }

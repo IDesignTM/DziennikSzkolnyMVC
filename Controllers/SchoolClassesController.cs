@@ -200,14 +200,14 @@ namespace DziennikSzkolnyMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddStudentToClass(int classId, string selectedStudentId)
+        public async Task<IActionResult> AddStudentToClass(int classId, string studentId)
         {
-            if (string.IsNullOrEmpty(selectedStudentId))
+            if (string.IsNullOrEmpty(studentId))
             {
                 return RedirectToAction(nameof(ManageStudents), new {id = classId});
             }
             
-            var student = await _userManager.FindByIdAsync(selectedStudentId);
+            var student = await _userManager.FindByIdAsync(studentId);
             if (student != null)
             {
                 student.SchoolClassId = classId;
@@ -219,9 +219,9 @@ namespace DziennikSzkolnyMVC.Controllers
         
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RemoveStudentFromClass(int classId, string selectedStudentId)
+        public async Task<IActionResult> RemoveStudentFromClass(int classId, string studentId)
         {
-            var student = await _userManager.FindByIdAsync(selectedStudentId);
+            var student = await _userManager.FindByIdAsync(studentId);
             if (student != null && student.SchoolClassId == classId)
             {
                 student.SchoolClassId = null;
